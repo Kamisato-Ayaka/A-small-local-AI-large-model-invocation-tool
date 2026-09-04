@@ -1,4 +1,4 @@
-# ===== 系统 / 缓存 =====
+﻿# ===== 系统 / 缓存 =====
 __pycache__/
 *.pyc
 *.pyo
@@ -11,19 +11,12 @@ _swap.py
 *.bak
 ngrok.exe
 
-# ===== AI 模型 & 大数据（自行下载，见 README 模型下载指南）=====
-models/
+# ===== 超大文件（单文件 >100MB，GitHub 硬限）=====
 llama-b9381-bin-win-cuda-13.3-x64/
-llama.cpp-master/
-Sounds_of_GPT_SoVITS_v2pro/
 程序环境需求软件SoftWarePackges/
 
-# ===== 壁纸 & 角色数据（可自行导入）=====
-Background_Recommend/
-Basic_Card_AI_Women/
-Basic_Card_Player_Man/
-Sound/
-charter/
+# ===== AI 模型（用户自行下载，见 README 模型下载指南）=====
+models/
 
 # ===== IDE / 编辑器 =====
 .trae/
