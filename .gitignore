@@ -1,0 +1,35 @@
+# ===== 系统 / 缓存 =====
+__pycache__/
+*.pyc
+*.pyo
+
+# ===== 运行时临时文件 =====
+*.tmp
+*.wav
+*.log
+_swap.py
+*.bak
+ngrok.exe
+
+# ===== AI 模型 & 大数据（自行下载，见 README 模型下载指南）=====
+models/
+llama-b9381-bin-win-cuda-13.3-x64/
+llama.cpp-master/
+Sounds_of_GPT_SoVITS_v2pro/
+程序环境需求软件SoftWarePackges/
+
+# ===== 壁纸 & 角色数据（可自行导入）=====
+Background_Recommend/
+Basic_Card_AI_Women/
+Basic_Card_Player_Man/
+Sound/
+charter/
+
+# ===== IDE / 编辑器 =====
+.trae/
+.idea/
+.vscode/
+
+# ===== 系统 =====
+.DS_Store
+Thumbs.db

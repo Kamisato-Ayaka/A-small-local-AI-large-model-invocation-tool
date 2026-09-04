@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>CodeMate - AI 对话</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #0f0f0f;
+    color: #e6edf3;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* 顶部栏 */
+.header {
+    background: #1e1e1e;
+    padding: 12px 16px;
+    border-bottom: 1px solid #2d2d30;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.header .logo {
+    font-size: 16px;
+    font-weight: 700;
+    color: #e6edf3;
+}
+
+.header .mode-switch {
+    margin-left: auto;
+    display: flex;
+    background: #252526;
+    border-radius: 6px;
+    border: 1px solid #333;
+    padding: 2px;
+}
+
+.header .mode-btn {
+    padding: 6px 12px;
+    border: none;
+    background: transparent;
+    color: #888;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.header .mode-btn.active {
+    background: #37373d;
+    color: #e6edf3;
+    font-weight: 600;
+}
+
+/* 系统监控栏 */
+.system-bar {
+    background: #1e1e1e;
+    padding: 8px 16px;
+    border-bottom: 1px solid #2d2d30;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    font-size: 12px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.system-bar::-webkit-scrollbar { display: none; }
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex-shrink: 0;
+    min-width: 60px;
+}
+
+.stat-item .label {
+    color: #666;
+    font-size: 10px;
+}
+
+.stat-item .value {
+    color: #e6edf3;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: Consolas, monospace;
+}
+
+.stat-item .value.warn { color: #ff9800; }
+.stat-item .value.danger { color: #f44336; }
+
+.model-control {
+    margin-left: auto;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.model-control select {
+    background: #252526;
+    border: 1px solid #333;
+    color: #e6edf3;
+    padding: 6px 6px;
+    border-radius: 6px;
+    font-size: 12px;
+    outline: none;
+    max-width: 150px;
+}
+
+.model-status {
+    color: #888;
+    font-size: 12px;
+}
+
+.model-status.running { color: #4caf50; }
+.model-status.starting { color: #ff9800; }
+
+.model-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.model-btn.start {
+    background: #4caf50;
+    color: white;
+}
+
+.model-btn.stop {
+    background: #f44336;
+    color: white;
+}
+
+.model-btn.cap {
+    background: #007acc;
+    color: white;
+}
+
+.model-btn:disabled {
+    background: #333 !important;
+    color: #666 !important;
+    cursor: not-allowed;
+}
+
+/* Token 用量显示 */
+.token-usage {
+    color: #6a737d;
+    font-size: 11px;
+    margin-top: 6px;
+    padding-top: 4px;
+    border-top: 1px dashed #333;
+    font-family: Consolas, monospace;
+}
+
+/* 能力查询弹窗 */
+.cap-modal .modal-box { max-width: 360px; }
+.cap-content {
+    color: #e6edf3;
+    font-size: 14px;
+    line-height: 1.7;
+    word-break: break-word;
+}
+
+/* 角色选择栏 */
+.character-bar {
+    background: #1e1e1e;
+    padding: 8px 16px;
+    border-bottom: 1px solid #2d2d30;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.character-bar.active { display: flex; }
+
+.character-bar select {
+    flex: 1;
+    background: #252526;
+    border: 1px solid #333;
+    color: #e6edf3;
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+}
+
+.character-bar .new-session-btn {
+    background: #252526;
+    border: 1px solid #333;
+    color: #e6edf3;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.character-bar .session-select {
+    background: #252526;
+    border: 1px solid #333;
+    color: #e6edf3;
+    padding: 8px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    outline: none;
+    max-width: 100px;
+}
+
+.character-bar .settings-btn {
+    background: #252526;
+    border: 1px solid #333;
+    color: #e6edf3;
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+/* 记忆轮数设置弹窗 */
+.settings-modal {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.settings-modal.active { display: flex; }
+
+.settings-modal .modal-box {
+    background: #252526;
+    border-radius: 12px;
+    padding: 20px;
+    width: 80%;
+    max-width: 320px;
+    border: 1px solid #333;
+}
+
+.settings-modal h3 {
+    margin: 0 0 16px 0;
+    color: #e6edf3;
+    font-size: 16px;
+}
+
+.settings-modal .setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.settings-modal label {
+    color: #ccc;
+    font-size: 14px;
+}
+
+.settings-modal input[type="range"] {
+    flex: 1;
+    margin: 0 12px;
+    accent-color: #007acc;
+}
+
+.settings-modal .rounds-value {
+    color: #007acc;
+    font-weight: 600;
+    min-width: 40px;
+    text-align: right;
+    font-family: Consolas, monospace;
+}
+
+.settings-modal .modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.settings-modal .modal-actions button {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.settings-modal .btn-cancel {
+    background: #3c3c3c;
+    color: #ccc;
+}
+
+.settings-modal .btn-save {
+    background: #007acc;
+    color: white;
+}
+
+/* 聊天区域 */
+.chat-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    scroll-behavior: smooth;
+}
+
+.chat-container::-webkit-scrollbar { width: 4px; }
+.chat-container::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+.message {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    max-width: 85%;
+}
+
+.message.user {
+    margin-left: auto;
+    flex-direction: row-reverse;
+}
+
+.message .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #333;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    overflow: hidden;
+}
+
+.message .avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.message.user .avatar { background: #0e639c; }
+
+.message .bubble {
+    background: #252526;
+    padding: 10px 14px;
+    border-radius: 12px;
+    line-height: 1.65;
+    font-size: 15px;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    min-height: 24px;
+    box-sizing: border-box;
+    flex: 1 1 auto;
+    max-width: 100%;
+}
+
+.message.user .bubble {
+    background: #0e639c;
+}
+
+.message.ai .bubble {
+    border-bottom-left-radius: 4px;
+}
+
+.message.user .bubble {
+    border-bottom-right-radius: 4px;
+}
+
+/* 属性更新提示 */
+.attr-update {
+    background: rgba(255, 193, 7, 0.1);
+    border-left: 3px solid #ffc107;
+    padding: 8px 12px;
+    margin: 8px 0;
+    font-size: 13px;
+    color: #ffc107;
+    border-radius: 4px;
+}
+
+/* 输入区域 */
+.input-area {
+    background: #1e1e1e;
+    padding: 10px 12px;
+    border-top: 1px solid #2d2d30;
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+}
+
+.input-area textarea {
+    flex: 1;
+    background: #252526;
+    border: 1px solid #333;
+    color: #e6edf3;
+    padding: 10px 12px;
+    border-radius: 20px;
+    font-size: 15px;
+    resize: none;
+    outline: none;
+    font-family: inherit;
+    max-height: 120px;
+    line-height: 1.4;
+}
+
+.input-area textarea:focus {
+    border-color: #0e639c;
+}
+
+.input-area .send-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #0e639c;
+    border: none;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    align-self: flex-end;
+}
+
+.input-area .send-btn:disabled {
+    background: #333;
+    color: #666;
+    cursor: not-allowed;
+}
+
+/* 状态提示 */
+.status-bar {
+    background: #1e1e1e;
+    padding: 4px 16px;
+    font-size: 12px;
+    color: #666;
+    border-bottom: 1px solid #2d2d30;
+    flex-shrink: 0;
+}
+
+.status-bar.connected { color: #4caf50; }
+.status-bar.error { color: #f44336; }
+
+/* 欢迎页 */
+.welcome {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+    text-align: center;
+    color: #666;
+}
+
+.welcome .icon { font-size: 48px; margin-bottom: 16px; }
+.welcome h2 { color: #e6edf3; margin-bottom: 8px; font-size: 20px; }
+.welcome p { font-size: 14px; line-height: 1.6; }
+
+/* 打字指示器 */
+.typing-indicator {
+    display: flex;
+    gap: 4px;
+    padding: 4px 0;
+}
+
+.typing-indicator span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #666;
+    animation: typing 1.4s infinite;
+}
+
+.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-6px); opacity: 1; }
+}
+
+/* 角色属性面板 */
+.attrs-panel {
+    background: #1a1a2e;
+    padding: 10px 16px;
+    border-bottom: 1px solid #2d2d30;
+    font-size: 12px;
+    color: #aaa;
+    display: none;
+    max-height: 80px;
+    overflow-y: auto;
+    flex-shrink: 0;
+}
+
+.attrs-panel.active { display: block; }
+.attrs-panel .title { color: #ffc107; font-weight: 600; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <div class="logo">✨ CodeMate</div>
+    <div class="mode-switch">
+        <button class="mode-btn active" onclick="switchMode('chat')">💬 对话</button>
+        <button class="mode-btn" onclick="switchMode('roleplay')">🎭 角色</button>
+    </div>
+</div>
+
+<div class="system-bar" id="systemBar">
+    <div class="stat-item">
+        <span class="label">CPU</span>
+        <span class="value" id="cpuVal">--</span>
+    </div>
+    <div class="stat-item">
+        <span class="label">内存</span>
+        <span class="value" id="memVal">--</span>
+    </div>
+    <div class="stat-item" id="gpuStat" style="display:none;">
+        <span class="label">GPU</span>
+        <span class="value" id="gpuVal">--</span>
+    </div>
+    <div class="model-control">
+        <select id="modelSelect" onchange="onModelChange()" title="选择模型">
+            <option value="">模型...</option>
+        </select>
+        <span class="model-status" id="modelStatus">检测中...</span>
+        <button class="model-btn start" id="modelBtn" onclick="toggleModel()">启动</button>
+        <button class="model-btn cap" id="capBtn" onclick="showCapabilities()" title="询问 AI 当前模型具备的能力">能力</button>
+    </div>
+</div>
+
+<div class="character-bar" id="characterBar">
+    <select id="characterSelect" onchange="onCharacterChange()">
+        <option value="">选择角色...</option>
+    </select>
+    <select id="sessionSelect" class="session-select" onchange="onSessionChange()" style="display:none;">
+        <option value="">历史会话</option>
+    </select>
+    <button class="new-session-btn" onclick="newSession()">🔄 新会话</button>
+    <button class="settings-btn" onclick="openSettings()" title="对话设置">⚙️</button>
+</div>
+
+<div class="attrs-panel" id="attrsPanel">
+    <div class="title">📋 角色属性</div>
+    <div id="attrsContent">暂无</div>
+</div>
+
+<div class="status-bar" id="statusBar">连接中...</div>
+
+<div class="chat-container" id="chatContainer">
+    <div class="welcome" id="welcome">
+        <div class="icon">💬</div>
+        <h2>CodeMate AI</h2>
+        <p>开始和 AI 对话吧<br>支持 AI 编程助手和角色扮演</p>
+    </div>
+</div>
+
+<div class="input-area">
+    <textarea id="messageInput" placeholder="输入消息..." rows="1" onkeydown="onKeyDown(event)" oninput="autoResize(this)"></textarea>
+    <button class="send-btn" id="sendBtn" onclick="sendMessage()">➤</button>
+</div>
+
+<script>
+let currentMode = 'chat';
+let currentCharacter = '';
+let sessionId = '';
+let ws = null;
+let isGenerating = false;
+let currentAIBubble = null;
+let characters = [];
+
+// 初始化
+window.onload = function() {
+    loadCharacters();
+    loadModels();
+    connectWebSocket();
+    autoResize(document.getElementById('messageInput'));
+    // 启动系统监控轮询
+    refreshSystemStats();
+    setInterval(refreshSystemStats, 3000);
+};
+
+// 加载模型列表
+async function loadModels() {
+    try {
+        const res = await fetch('/api/models');
+        const data = await res.json();
+        const sel = document.getElementById('modelSelect');
+        if (!sel) return;
+        const models = data.models || [];
+        sel.innerHTML = '';
+        if (!models.length) {
+            const opt = document.createElement('option');
+            opt.value = '';
+            opt.textContent = '无可用模型';
+            sel.appendChild(opt);
+            return;
+        }
+        models.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m.id;
+            opt.textContent = (m.ready ? '✅ ' : '⭕ ') + m.name;
+            if (m.current) opt.selected = true;
+            sel.appendChild(opt);
+        });
+    } catch(e) {
+        console.error('加载模型列表失败:', e);
+    }
+}
+
+// 切换模型（服务运行中会自动重启加载新模型）
+async function onModelChange() {
+    const sel = document.getElementById('modelSelect');
+    const modelId = sel.value;
+    if (!modelId) return;
+    try {
+        const res = await fetch('/api/model/select', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ model_id: modelId })
+        });
+        const data = await res.json();
+        if (!data.ok) {
+            alert('切换模型失败: ' + (data.error || '未知错误'));
+            return;
+        }
+        if (data.restarted) {
+            updateStatus('正在重启加载新模型...', '');
+        }
+        setTimeout(refreshSystemStats, 500);
+        setTimeout(loadModels, 2000);
+    } catch(e) {
+        alert('切换模型失败: ' + e.message);
+    }
+}
+
+// 询问 AI 当前模型具备哪些能力
+async function showCapabilities() {
+    const modal = document.getElementById('capModal');
+    const content = document.getElementById('capContent');
+    const btn = document.getElementById('capBtn');
+    content.textContent = '正在询问 AI 当前模型具备哪些能力...（约需几秒）';
+    btn.disabled = true;
+    modal.classList.add('active');
+    try {
+        const res = await fetch('/api/model/capabilities', { method: 'POST' });
+        const data = await res.json();
+        content.textContent = data.ok
+            ? data.capabilities
+            : '⚠️ ' + (data.error || '查询失败');
+    } catch(e) {
+        content.textContent = '⚠️ 请求失败: ' + e.message;
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+// 刷新系统状态
+async function refreshSystemStats() {
+    try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+
+        // 更新系统监控
+        const stats = data.system_stats || {};
+        const cpuVal = document.getElementById('cpuVal');
+        const memVal = document.getElementById('memVal');
+        const gpuStat = document.getElementById('gpuStat');
+        const gpuVal = document.getElementById('gpuVal');
+
+        const cpu = stats.cpu || 0;
+        cpuVal.textContent = cpu.toFixed(0) + '%';
+        cpuVal.className = 'value' + (cpu > 80 ? ' danger' : cpu > 60 ? ' warn' : '');
+
+        const mem = stats.memory || 0;
+        memVal.textContent = mem.toFixed(0) + '%';
+        memVal.className = 'value' + (mem > 80 ? ' danger' : mem > 60 ? ' warn' : '');
+
+        if (stats.has_gpu) {
+            gpuStat.style.display = 'flex';
+            const gpu = stats.gpu || 0;
+            gpuVal.textContent = gpu.toFixed(0) + '%';
+            gpuVal.className = 'value' + (gpu > 80 ? ' danger' : gpu > 60 ? ' warn' : '');
+        }
+
+        // 更新模型状态
+        const model = data.model_status || {};
+        updateModelUI(model);
+    } catch(e) {
+        console.error('刷新状态失败:', e);
+    }
+}
+
+// 更新模型 UI
+function updateModelUI(model) {
+    const statusEl = document.getElementById('modelStatus');
+    const btnEl = document.getElementById('modelBtn');
+
+    statusEl.textContent = model.status_text || '未知';
+    statusEl.className = 'model-status ' + (model.status || '');
+
+    if (model.status === 'running') {
+        btnEl.textContent = '停止';
+        btnEl.className = 'model-btn stop';
+        btnEl.disabled = false;
+    } else if (model.status === 'starting' || model.status === 'stopping') {
+        btnEl.textContent = model.status === 'starting' ? '启动中...' : '停止中...';
+        btnEl.className = 'model-btn';
+        btnEl.disabled = true;
+    } else {
+        btnEl.textContent = '启动';
+        btnEl.className = 'model-btn start';
+        btnEl.disabled = false;
+    }
+}
+
+// 切换模型启停
+async function toggleModel() {
+    const btn = document.getElementById('modelBtn');
+    const isRunning = btn.classList.contains('stop');
+
+    btn.disabled = true;
+    try {
+        const url = isRunning ? '/api/model/stop' : '/api/model/start';
+        const res = await fetch(url, { method: 'POST' });
+        const data = await res.json();
+
+        if (data.ok) {
+            // 立即更新一次状态
+            setTimeout(refreshSystemStats, 500);
+        } else {
+            alert('操作失败: ' + (data.error || '未知错误'));
+            btn.disabled = false;
+        }
+    } catch(e) {
+        alert('操作失败: ' + e.message);
+        btn.disabled = false;
+    }
+}
+
+// 加载角色列表
+async function loadCharacters() {
+    try {
+        const res = await fetch('/api/character/list');
+        const data = await res.json();
+        characters = data.characters || [];
+        const select = document.getElementById('characterSelect');
+        select.innerHTML = '<option value="">选择角色...</option>';
+        characters.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.name;
+            opt.textContent = c.name;
+            select.appendChild(opt);
+        });
+    } catch(e) {
+        console.error('加载角色失败:', e);
+    }
+}
+
+// 切换模式
+function switchMode(mode) {
+    currentMode = mode;
+    document.querySelectorAll('.mode-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', (i === 0 && mode === 'chat') || (i === 1 && mode === 'roleplay'));
+    });
+
+    const charBar = document.getElementById('characterBar');
+    const attrsPanel = document.getElementById('attrsPanel');
+
+    if (mode === 'roleplay') {
+        charBar.classList.add('active');
+        if (currentCharacter) {
+            attrsPanel.classList.add('active');
+        }
+    } else {
+        charBar.classList.remove('active');
+        attrsPanel.classList.remove('active');
+    }
+
+    // 清空聊天
+    clearChat();
+    sessionId = '';
+}
+
+// 角色改变
+function onCharacterChange() {
+    const select = document.getElementById('characterSelect');
+    currentCharacter = select.value;
+    const attrsPanel = document.getElementById('attrsPanel');
+    const sessionSelect = document.getElementById('sessionSelect');
+
+    if (currentCharacter) {
+        attrsPanel.classList.add('active');
+        document.getElementById('attrsContent').textContent = '加载中...';
+        sessionSelect.style.display = 'inline-block';
+        // 加载历史会话列表
+        loadSessionList();
+        // 新会话
+        newSession();
+    } else {
+        attrsPanel.classList.remove('active');
+        sessionSelect.style.display = 'none';
+    }
+}
+
+// 加载会话列表
+async function loadSessionList() {
+    if (!currentCharacter) return;
+    try {
+        const res = await fetch(`/api/character/sessions?character=${encodeURIComponent(currentCharacter)}`);
+        const data = await res.json();
+        const sessions = data.sessions || [];
+
+        const select = document.getElementById('sessionSelect');
+        select.innerHTML = '<option value="">历史会话</option>';
+
+        // 按时间倒序
+        sessions.sort((a, b) => b.created_at - a.created_at);
+
+        for (const s of sessions) {
+            const opt = document.createElement('option');
+            opt.value = s.name;
+            opt.textContent = s.name_cn || s.name;
+            select.appendChild(opt);
+        }
+    } catch(e) {
+        console.error('加载会话列表失败:', e);
+    }
+}
+
+// 切换历史会话
+async function onSessionChange() {
+    const select = document.getElementById('sessionSelect');
+    const sessionName = select.value;
+    if (!sessionName || !currentCharacter) return;
+
+    try {
+        const res = await fetch(`/api/session/history?character=${encodeURIComponent(currentCharacter)}&session_name=${encodeURIComponent(sessionName)}`);
+        const data = await res.json();
+        const messages = data.messages || [];
+
+        // 设置当前会话 ID
+        sessionId = sessionName;
+
+        // 清空并显示历史
+        clearChat();
+        for (const msg of messages) {
+            if (msg.role === 'user') {
+                addUserMessage(msg.content);
+            } else {
+                addAIMessage(msg.content);
+            }
+        }
+
+        // 滚动到底部
+        const container = document.getElementById('chatContainer');
+        container.scrollTop = container.scrollHeight;
+    } catch(e) {
+        console.error('加载会话历史失败:', e);
+    }
+}
+
+// 新会话
+async function newSession() {
+    if (currentMode !== 'roleplay' || !currentCharacter) return;
+
+    try {
+        const res = await fetch('/api/session/new', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                mode: 'roleplay',
+                character: currentCharacter
+            })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.session_id) {
+            // 角色没有游戏会话等后端校验失败：给出明确提示，不进入聊天
+            clearChat();
+            addAIMessage(`❌ ${data.detail || data.error || '创建会话失败'}`);
+            return;
+        }
+        sessionId = data.session_id;
+        clearChat();
+        // 与电脑客户端一致：载入该游戏会话已有的 对话历史.txt
+        if (Array.isArray(data.messages)) {
+            for (const m of data.messages) {
+                if (m.role === 'user') addUserMessage(m.content);
+                else addAIMessage(m.content);
+            }
+        }
+        if (!data.messages || data.messages.length === 0) {
+            addAIMessage(`🎮 游戏世界已就绪\n\n已绑定电脑客户端创建的游戏会话，输入你的第一个行为选择或自定义行动，开始游戏！`);
+        }
+        // 更新属性面板
+        document.getElementById('attrsContent').textContent = '初始设定已加载';
+    } catch(e) {
+        console.error('创建会话失败:', e);
+    }
+}
+
+// 清空聊天
+function clearChat() {
+    const container = document.getElementById('chatContainer');
+    const welcome = document.getElementById('welcome');
+    container.innerHTML = '';
+    container.appendChild(welcome);
+    welcome.style.display = 'flex';
+}
+
+// WebSocket 连接
+function connectWebSocket() {
+    const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${location.host}/ws/chat`;
+
+    ws = new WebSocket(wsUrl);
+
+    ws.onopen = function() {
+        updateStatus('已连接', 'connected');
+    };
+
+    ws.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        handleWSMessage(data);
+    };
+
+    ws.onclose = function() {
+        updateStatus('连接断开，正在重连...', 'error');
+        setTimeout(connectWebSocket, 3000);
+    };
+
+    ws.onerror = function() {
+        updateStatus('连接错误', 'error');
+    };
+}
+
+// 处理 WebSocket 消息
+function handleWSMessage(data) {
+    switch(data.type) {
+        case 'session_id':
+            sessionId = data.session_id;
+            break;
+        case 'chunk':
+            if (currentAIBubble) {
+                currentAIBubble.querySelector('.bubble').textContent += data.content;
+                scrollToBottom();
+            }
+            break;
+        case 'attr_update':
+            document.getElementById('attrsContent').textContent = data.attrs.substring(0, 200) + (data.attrs.length > 200 ? '...' : '');
+            // 在聊天中显示属性更新提示
+            if (currentAIBubble) {
+                const note = document.createElement('div');
+                note.className = 'attr-update';
+                note.textContent = '📝 角色属性已更新';
+                currentAIBubble.querySelector('.bubble').appendChild(note);
+            }
+            break;
+        case 'usage':
+            // Token 用量（角色扮演模式显示）：输入=角色设定+属性+历史+玩家输入的综合，输出=AI回复
+            if (currentAIBubble && currentMode === 'roleplay') {
+                let el = currentAIBubble.querySelector('.token-usage');
+                if (!el) {
+                    el = document.createElement('div');
+                    el.className = 'token-usage';
+                    currentAIBubble.querySelector('.bubble').appendChild(el);
+                }
+                el.textContent = `⇅ 输入 ${data.input_tokens} tokens · 输出 ${data.output_tokens} tokens`;
+            }
+            break;
+        case 'done':
+            isGenerating = false;
+            currentAIBubble = null;
+            updateSendButton();
+            break;
+        case 'error':
+            isGenerating = false;
+            currentAIBubble = null;
+            updateSendButton();
+            addErrorMessage(data.message);
+            break;
+    }
+}
+
+// 发送消息
+function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const text = input.value.trim();
+
+    if (!text || isGenerating) return;
+
+    // 隐藏欢迎页
+    document.getElementById('welcome').style.display = 'none';
+
+    // 添加用户消息
+    addUserMessage(text);
+    input.value = '';
+    autoResize(input);
+
+    // 准备 AI 消息气泡
+    addAIMessage('');
+    isGenerating = true;
+    updateSendButton();
+
+    // 发送消息
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+            session_id: sessionId,
+            message: text,
+            mode: currentMode,
+            character: currentCharacter
+        }));
+    } else {
+        addErrorMessage('WebSocket 未连接，请刷新页面重试');
+        isGenerating = false;
+        updateSendButton();
+    }
+}
+
+// 添加用户消息
+function addUserMessage(text) {
+    const container = document.getElementById('chatContainer');
+    const msg = document.createElement('div');
+    msg.className = 'message user';
+    msg.innerHTML = `
+        <div class="avatar">👤</div>
+        <div class="bubble"></div>
+    `;
+    msg.querySelector('.bubble').textContent = text;
+    container.appendChild(msg);
+    scrollToBottom();
+}
+
+// 添加 AI 消息
+function addAIMessage(text) {
+    const container = document.getElementById('chatContainer');
+    const msg = document.createElement('div');
+    msg.className = 'message ai';
+
+    let avatarContent = '🤖';
+    if (currentMode === 'roleplay' && currentCharacter) {
+        avatarContent = `<img src="/api/character/icon/${encodeURIComponent(currentCharacter)}" onerror="this.style.display='none';this.parentElement.textContent='🎭';">`;
+    }
+
+    msg.innerHTML = `
+        <div class="avatar">${avatarContent}</div>
+        <div class="bubble"></div>
+    `;
+    if (text) {
+        msg.querySelector('.bubble').textContent = text;
+    } else {
+        msg.querySelector('.bubble').innerHTML = '<div class="typing-indicator"><span></span><span></span><span></span></div>';
+    }
+    container.appendChild(msg);
+    currentAIBubble = msg;
+    scrollToBottom();
+    return msg;
+}
+
+// 添加错误消息
+function addErrorMessage(text) {
+    const container = document.getElementById('chatContainer');
+    const msg = document.createElement('div');
+    msg.className = 'message ai';
+    msg.innerHTML = `
+        <div class="avatar">⚠️</div>
+        <div class="bubble" style="color: #f44336; background: rgba(244,67,54,0.1);"></div>
+    `;
+    msg.querySelector('.bubble').textContent = text;
+    container.appendChild(msg);
+    scrollToBottom();
+}
+
+// 更新状态
+function updateStatus(text, cls) {
+    const bar = document.getElementById('statusBar');
+    bar.textContent = text;
+    bar.className = 'status-bar ' + (cls || '');
+}
+
+// 更新发送按钮状态
+function updateSendButton() {
+    const btn = document.getElementById('sendBtn');
+    btn.disabled = isGenerating;
+}
+
+// 滚动到底部
+function scrollToBottom() {
+    const container = document.getElementById('chatContainer');
+    container.scrollTop = container.scrollHeight;
+}
+
+// 键盘事件
+function onKeyDown(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+    }
+}
+
+// 自动调整输入框高度
+function autoResize(textarea) {
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+}
+
+// 设置弹窗
+function openSettings() {
+    // 加载当前设置
+    fetch('/api/settings/memory_rounds').then(r => r.json()).then(data => {
+        const rounds = data.memory_rounds || 10;
+        document.getElementById('memoryRounds').value = rounds;
+        document.getElementById('roundsValue').textContent = rounds;
+    });
+    document.getElementById('settingsModal').classList.add('active');
+}
+
+function closeSettings() {
+    document.getElementById('settingsModal').classList.remove('active');
+}
+
+function updateRoundsValue() {
+    const val = document.getElementById('memoryRounds').value;
+    document.getElementById('roundsValue').textContent = val;
+}
+
+async function saveSettings() {
+    const rounds = parseInt(document.getElementById('memoryRounds').value);
+    try {
+        const res = await fetch('/api/settings/memory_rounds', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ rounds: rounds })
+        });
+        const data = await res.json();
+        if (data.ok) {
+            closeSettings();
+        } else {
+            alert('保存失败: ' + (data.error || '未知错误'));
+        }
+    } catch(e) {
+        alert('保存失败: ' + e.message);
+    }
+}
+</script>
+
+<!-- 记忆轮数设置弹窗 -->
+<div class="settings-modal" id="settingsModal">
+    <div class="modal-box">
+        <h3>⚙️ 对话设置</h3>
+        <div class="setting-row">
+            <label>记忆轮数</label>
+            <input type="range" id="memoryRounds" min="1" max="100" value="10" oninput="updateRoundsValue()">
+            <span class="rounds-value" id="roundsValue">10</span>
+        </div>
+        <p style="color:#666;font-size:12px;margin:8px 0 0 0;">数值越大，AI记得越久，但消耗的 token 也越多。建议 10-20 轮。</p>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeSettings()">取消</button>
+            <button class="btn-save" onclick="saveSettings()">保存</button>
+        </div>
+    </div>
+</div>
+
+<!-- 模型能力弹窗 -->
+<div class="settings-modal cap-modal" id="capModal" onclick="if(event.target===this)this.classList.remove('active')">
+    <div class="modal-box">
+        <h3>🧠 当前模型能力</h3>
+        <div class="cap-content" id="capContent">正在询问 AI...</div>
+        <div class="modal-actions">
+            <button class="btn-save" onclick="document.getElementById('capModal').classList.remove('active')">好的</button>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
