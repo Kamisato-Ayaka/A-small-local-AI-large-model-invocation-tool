@@ -11,7 +11,7 @@ _swap.py
 *.bak
 ngrok.exe
 
-# ===== 超大文件（单文件 >100MB，GitHub 硬限）=====
+# ===== 超大文件目录（排除解压后的文件夹，但允许上传分卷压缩包）=====
 llama-b9381-bin-win-cuda-13.3-x64/
 程序环境需求软件SoftWarePackges/
 
