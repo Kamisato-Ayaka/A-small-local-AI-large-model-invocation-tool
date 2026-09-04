@@ -1,4 +1,4 @@
-# 🎮 AI Chat — A Small Local AI Runner
+# 🎮 A-small-local-AI-large-model-invocation-tool
 
 PyQt5 本地桌面 AI 应用，集成调用本地模型实现 **AI 对话 / 角色扮演 / 文生视频 / 图生视频 / 语音合成** 五大功能模块，无浏览器依赖，支持动态壁纸桌面美化。
 
@@ -60,7 +60,7 @@ PyQt5 本地桌面 AI 应用，集成调用本地模型实现 **AI 对话 / 角�
 python install_and_launch.py
 ```
 
-点击「📦 安装依赖」→ 点击「🚀 启动 AI Chat」
+点击「📦 安装依赖」→ 点击「🚀 启动程序」
 
 ### 2. 手动启动
 
@@ -356,6 +356,364 @@ models/Sulphur 2/                      ← 把网上下载的压缩包解压，�
 | **ComfyUI**                | [comfyanonymous/ComfyUI](https://github.com/comfyanonymous/ComfyUI)                              | 官方开源项目                                                                                                                                                          |
 
 > 上述第三方下载链接均为社区教程/分享页面，**本程序作者与这些第三方网站无关**，请自行甄别内容可靠性。所有 AI 模型版权归各自原作者/机构所有。
+
+***
+
+## 📄 License
+
+GPL-3.0
+
+***
+
+# 🎮 English Version
+
+A PyQt5-based local desktop AI application that integrates **AI Chat / Role-playing / Text-to-Video / Image-to-Video / Speech Synthesis** by calling local models. No browser dependency, with dynamic wallpaper desktop customization.
+
+![Main Interface](docs/screenshots/main%E7%95%8C%E9%9D%A2.png)
+
+## ✨ Features
+
+| Module                        | Description                                                                              |
+| ----------------------------- | ---------------------------------------------------------------------------------------- |
+| 💬 **AI Chat**                | Streaming conversation with local LLM (llama-server), think-process visualization        |
+| 🎭 **Role-play**              | Character card templates + World Info + game-style prompt assembly                       |
+| 🎬 **Text-to-Video**          | ComfyUI-based LTX-Video + Sulphur 2 model invocation                                     |
+| 🖼 **Image-to-Video**         | Same as above, with first-frame upload auto-injected into LoadImage nodes                |
+| 🎤 **Voice System**           | CosyVoice (Chinese zero-shot cloning) / GPT-SoVITS-v2pro (multilingual v2Pro)            |
+| 🖼 **Wallpaper & Appearance** | Wallpaper Engine pkg import + interactive parallax wallpaper + text opacity compensation |
+| 📱 **Mobile Web**             | FastAPI LAN service — scan QR code on same WiFi to chat                                  |
+
+***
+
+## 📢 Disclaimer
+
+> **This program is a "model invocation aggregator". It does NOT develop, train, or modify any AI model.**
+>
+> - 💬 **LLM** (Gemma / Qwen, etc.): Calls third-party GGUF-format models via llama.cpp / llama-server
+>
+> - 🎤 **Voice** (GPT-SoVITS-v2pro / CosyVoice): Calls third-party open-source TTS services via HTTP API
+>
+> - 🎬 **Video** (Sulphur 2 / LTX-Video): Calls third-party video generation models via ComfyUI's API
+>
+> - 🖼 **Wallpaper**: Reads author-original works downloaded via Wallpaper Engine subscriptions
+>
+> All model copyrights, licenses, and download portals belong to their **original authors/institutions**. This program only provides a unified graphical interface to **use** these models. Please read each model's license carefully before use (some prohibit commercial use).
+
+## 📱 Mobile Web (Same-WiFi Browser Chat)
+
+The program includes a built-in FastAPI service, allowing phones/tablets/other devices on the same LAN to chat with the local AI via browser. The desktop model serves as the unified backend.
+
+![Mobile Access Dialog](docs/screenshots/mobile_web.png)
+
+### Features
+
+- ✅ **WiFi LAN Mode**: Phone and computer on the same WiFi — scan QR code to enter the mobile chat UI
+
+- ✅ **QR Code Scanning**: Desktop shows a "Mobile Access" dialog — scan directly, no URL typing
+
+- ✅ **Mobile UI**: Touch-optimized chat interface with streaming output and history
+
+### Usage
+
+1. Top menu → **"Mobile Access"** (or QR icon in toolbar)
+2. Select **"WiFi LAN"**
+3. Scan QR code with phone → enter mobile chat UI
+
+## 🚀 Quick Start
+
+### 1. Install Dependencies & Launch (Recommended)
+
+```bash
+python install_and_launch.py
+```
+
+Click "📦 Install Dependencies" → click "🚀 Launch"
+
+### 2. Manual Launch
+
+```bash
+pip install -r AI_Chat/requirements.txt
+cd AI_Chat
+python app.py
+```
+
+## 📁 Project Structure
+
+```
+AI_Chat/
+├── 🎮 App Entry
+│   ├── app.py                              ← Main entry (PyQt5 QApplication)
+│   ├── launcher.py                         ← Auto-locate llama-server.exe
+│   ├── main.py                             ← MainWindow (tab bar + wallpaper layer)
+│   ├── install_and_launch.py               ← One-click dep installer + launcher
+│   ├── gui_launcher.py                     ← tkinter fallback (when PyQt5 missing)
+│   ├── start.bat / start-all.bat           ← Windows launch scripts
+│   ├── requirements.txt                    ← Python dependency list
+│   ├── README.md / .gitignore / LICENSE
+│   │
+│   ├── 📂 llama-b9381-bin-win-cuda-13.3-x64/  ← llama-server CUDA (official b9381 release, ~683MB)
+│   │   ├── llama-server.exe                ← LLM inference engine (HTTP server mode)
+│   │   ├── llama-cli.exe / llama-bench.exe / ...
+│   │   ├── llama.dll + ggml*.dll           ← Core inference libs
+│   │   └── cublas64_13.dll / cublasLt64_13.dll / cudart64_13.dll  ← CUDA 13.3 runtime
+│   │
+│   ├── 📂 AI_Chat/                         ← ⭐ Source Code
+│   │   ├── app.py                          ← Main entry (imported by ../app.py)
+│   │   ├── main.py                         ← MainWindow
+│   │   ├── ComfyUI_ITX2.3_Sulphur 2_TexttoVideo.json
+│   │   ├── ComfyUI_ITX2.3_Sulphur 2_PicturetoVideo.json
+│   │   ├── requirements.txt
+│   │   ├── start.bat / start-all.bat
+│   │   ├── core/                           ← ⭐ Core logic layer
+│   │   │   ├── config.py                   ← ConfigManager singleton (dot-path get/set)
+│   │   │   ├── server_manager.py           ← llama-server process management
+│   │   │   ├── llm_client.py               ← OpenAI-compatible streaming client
+│   │   │   ├── character_manager.py        ← Character cards + World Info + game prompts
+│   │   │   ├── tts_installer.py            ← CosyVoice installer
+│   │   │   ├── tts_server_manager.py       ← CosyVoice service management
+│   │   │   ├── tts_client.py               ← CosyVoice HTTP client
+│   │   │   ├── gpt_sovits_server_manager.py ← GPT-SoVITS service management
+│   │   │   ├── gpt_sovits_client.py        ← GPT-SoVITS HTTP client
+│   │   │   ├── comfyui_client.py           ← ComfyUI API client
+│   │   │   ├── model_manager.py            ← Sulphur 2 model detection/copy
+│   │   │   ├── system_monitor.py           ← psutil monitoring
+│   │   │   ├── we_pkg_extract.py           ← Wallpaper Engine pkg extraction
+│   │   │   ├── theme_manager.py             ← Theme management
+│   │   │   ├── text_opacity.py             ← Text opacity compensation
+│   │   │   └── api_server.py               ← Embedded API
+│   │   ├── widgets/                        ← ⭐ UI layer
+│   │   │   ├── ai_panel.py                 ← 💬 Chat + 🎭 Role-play panels
+│   │   │   ├── video_panel_v2.py           ← 🎬 Text2Vid + 🖼 Image2Vid panel (active)
+│   │   │   ├── video_setup_wizard.py       ← ComfyUI workflow wizard
+│   │   │   ├── tts_panel.py                ← 🎤 Voice system panel
+│   │   │   ├── tts_install_panel.py        ← CosyVoice step-by-step installer
+│   │   │   ├── wallpaper_panel.py          ← 🖼 Wallpaper & Appearance panel
+│   │   │   ├── animated_bg.py              ← Window-level wallpaper (image/video + parallax)
+│   │   │   ├── wallpaper_import_dialog.py
+│   │   │   ├── character_dialog.py
+│   │   │   ├── settings_dialog.py
+│   │   │   ├── setup_wizard.py
+│   │   │   └── web_server_dialog.py
+│   │   ├── charter/                        ← Built-in character templates
+│   │   ├── workspace/                      ← Chat history + character sessions (runtime-generated)
+│   │   ├── web/                            ← Mobile FastAPI service
+│   │   │   └── web_server.py
+│   │   └── cosyvoice_service/              ← CosyVoice FastAPI service (separate conda process)
+│   │       └── server.py
+│   │
+│   ├── 📂 models/                          ← ⚠️ Model directory (download separately)
+│   │   ├── .gitkeep
+│   │   ├── gemma-4-E4B-it-uncensored-Q4_K_M.gguf
+│   │   ├── Qwen3.6-35B-A3B-Uncensored-HauhauCS-Aggressive-IQ2_M.gguf
+│   │   ├── mmproj-Qwen3.6-35B-A3B-Uncensored-HauhauCS-Aggressive-f16.gguf
+│   │   ├── ComfyUI/                       ← ComfyUI instance (runtime-generated)
+│   │   ├── Sulphur 2/
+│   │   ├── GPT-SoVITS-v2pro/
+│   │   └── CosyVoice/
+│   │
+│   ├── 📂 Background_Recommend/            ← Wallpaper Engine wallpaper recommendations
+│   ├── 📂 Basic_Card_AI_Women/ + Basic_Card_Player_Man/ ← SteamGridDB character card templates
+│   ├── 📂 charter/                         ← Character templates
+│   ├── 📂 docs/screenshots/               ← Screenshots
+│   ├── 📂 llama.cpp-master/                ← llama.cpp source reference (optional)
+│   ├── 📂 Sound/ + Sounds_of_GPT_SoVITS_v2pro/ ← Sound effects + default reference audio
+│   └── 📂 Software Packages/               ← FFmpeg / ImageMagick / ComfyUI setup installers
+│
+└── .trae/                                  ← Trae IDE workspace cache (NOT uploaded to Git)
+```
+
+***
+
+## 🧠 Model Download & Placement Guide
+
+> ⚠️ All model files are NOT distributed with the GitHub repository (single file >100MB / total >90GB). Download them from the links below and place them in the correct directories. This program **only invokes** these models — it does NOT develop them. All copyrights belong to the original authors.
+
+### 1. LLM Chat Models (llama.cpp / GGUF format)
+
+**How to use in program**: Top bar second row → 💬 Chat / 🎭 Role-play dropdown selects placed .gguf files
+
+| Model                                      | Size     | Download Link                                                                 | Directory |
+| ------------------------------------------ | -------- | ----------------------------------------------------------------------------- | --------- |
+| **Gemma 4 E4B Uncensored (Q4\_K\_M)**      | \~5 GB   | HuggingFace: <https://huggingface.co/TrevorJS/gemma-4-E4B-it-uncensored-GGUF> | `models/` |
+| **Qwen3.6-35B A3B Uncensored (IQ2\_M)**    | \~11 GB  | CSDN: <https://blog.csdn.net/weixin_41961749/article/details/161501525>       | `models/` |
+| **mmproj-Qwen3.6** (multimodal projection) | \~858 MB | Download together with Qwen3.6                                                | `models/` |
+
+After placement, the program will **auto-scan** all .gguf files in `models/` and fill the dropdown.
+
+***
+
+### 2. llama-server.exe (LLM Inference Engine)
+
+**How to use in program**: Auto-located (scanned by `launcher.py`), or manually specified
+
+| Resource                                                        | Download Link                                              | Directory                                           |
+| --------------------------------------------------------------- | ---------------------------------------------------------- | --------------------------------------------------- |
+| **llama.cpp Windows CUDA 13.3 pre-built + CUDA DLL** (official) | <https://github.com/ggml-org/llama.cpp/releases/tag/b9381> | `llama-b9381-bin-win-cuda-13.3-x64/` (project root) |
+
+Download both official release assets and extract together: `llama-b9381-bin-win-cuda-13.3-x64.zip` + `cudart-llama-bin-win-cuda-13.3-x64.zip`. This project uses pure official binaries (b9381, commit `91eb8f4fa`), no third-party modifications.
+
+***
+
+### 3. GPT-SoVITS-v2pro (Multilingual Voice Cloning) ⭐ Recommended
+
+**How to use in program**: 🎤 Voice System → top bar select GPT-SoVITS-v2pro → configure integration pack path + weights + reference audio → start service
+
+> ⚠️ **You MUST first extract the integration pack**, then place the extracted folder into `models/GPT-SoVITS-v2pro/` (the folder should directly contain `api.py`, `runtime/`, `GPT_SoVITS/`, etc. — DO NOT nest an extra level).
+
+| Resource                                            | Download Link                                                                                                                                        | Directory                                             |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| **Full integration pack (runtime + api.py)**        | x-jzy.github.io (tutorial): <https://x-jzy.github.io/2025/10/31/GPT-SoVITS%E7%9A%84%E6%9C%AC%E5%9C%B0%E9%83%A8%E7%BD%B2%E4%B8%8E%E4%BD%BF%E7%94%A8/> | `models/GPT-SoVITS-v2pro/`                            |
+| **🎭 Character GPT-SoVITS model library (popular)** | <https://www.ai-hobbyist.com/> (third-party model sharing site)                                                                                      | Download `.ckpt` + `.pth` into respective weight dirs |
+
+**Directory structure after extraction**:
+
+```
+models/GPT-SoVITS-v2pro/
+├── api.py / api_v2.py / webui.py
+├── runtime/                          ← Bundled Python 3.9 + PyTorch CUDA (no install needed)
+├── GPT_SoVITS/pretrained_models/     ← Base pretrained models (included in pack)
+├── GPT_weights_v2Pro/               ← 📥 Your character GPT weights (.ckpt)
+├── SoVITS_weights_v2Pro/             ← 📥 Your character SoVITS weights (.pth)
+└── tools/uvr5/uvr5_weights/         ← Vocal separation model (optional)
+```
+
+**Program-side configuration also needed**:
+
+| Setting               | Description                 | Example                                       |
+| --------------------- | --------------------------- | --------------------------------------------- |
+| Integration pack path | Directory containing api.py | `models/GPT-SoVITS-v2pro`                     |
+| SoVITS weight (.pth)  | v2Pro format                | `SoVITS_weights_v2Pro/your_char_e10_s940.pth` |
+| GPT weight (.ckpt)    | v2Pro format                | `GPT_weights_v2Pro/your_char-e10.ckpt`        |
+| Default ref audio     | 3-5 sec clean wav           | A recording of your character                 |
+| Default ref text      | Exact words spoken          | `"What?! Not the Treasure Hoarders again!"`   |
+| Default ref language  | zh / en / ja / ko           | `zh`                                          |
+
+**⚠️ Important**: Reference audio should be 3-5 seconds, single sentence, no background noise. Every synthesis call **omits** reference parameters (so the service uses the `default_refer` set at startup via `-dr/-dt/-dl`). Passing them would trigger re-zero-shot-cloning each time, causing tail content of long refs to inject as a "fixed prefix".
+
+***
+
+### 4. CosyVoice2 / CosyVoice3 (Chinese Zero-Shot Voice Cloning)
+
+**How to use in program**: 🎤 Voice System → top bar select CosyVoice → configure repo path + model dir → start service
+
+> ⚠️ **You MUST first install Miniconda/Anaconda** (<https://docs.conda.io/en/latest/miniconda.html>). CosyVoice needs conda to create an isolated Python environment (the program's built-in installer will auto-install git + clone repo + create conda env + download models — or you can do it manually).
+
+| Resource                                   | Download Link                                                               | Directory                                                      |
+| ------------------------------------------ | --------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| **CosyVoice official repo**                | <https://github.com/QwenAudio/CosyVoice> (Alibaba DAMO Academy)             | Extract into `models/CosyVoice/`                               |
+| **Fun-CosyVoice3-0.5B-2512 (Recommended)** | ModelScope: <https://www.modelscope.cn/models/iic/Fun-CosyVoice3-0.5B-2512> | `models/CosyVoice/pretrained_models/Fun-CosyVoice3-0.5B-2512/` |
+| **CosyVoice2-0.5B**                        | Same as above                                                               | `models/CosyVoice/pretrained_models/CosyVoice2-0.5B/`          |
+
+**Directory structure** (after extracting CosyVoice repo):
+
+```
+models/CosyVoice/
+├── cosyvoice/                       ← Source code (extract repo here)
+├── third_party/
+├── pretrained_models/
+│   ├── Fun-CosyVoice3-0.5B-2512/    ← 📥 Download model files here
+│   └── CosyVoice2-0.5B/             ← Or choose CosyVoice2
+├── server.py                        ← Service entry (auto-started by program)
+└── ...other repo files
+```
+
+The program has a built-in CosyVoice installer (🎤 Voice System → CosyVoice config → step-by-step install). Three steps complete everything: clone repo → create conda env + install deps → download pretrained model. One-click button handles it all.
+
+***
+
+### 5. ComfyUI + Sulphur 2 for Video Generation
+
+**How to use in program**: 🎬 Text-to-Video / 🖼 Image-to-Video → launch wizard → load workflow → fill model paths → call ComfyUI API
+
+> ⚠️ **You MUST start the ComfyUI desktop app first** (its background API server). Without it, video generation is unavailable. This program only calls ComfyUI's API — actual inference is done by ComfyUI.
+
+**1. Install ComfyUI Desktop**: <https://github.com/comfyanonymous/ComfyUI>
+
+**2. Sulphur 2 model file (only 1 file, place directly in** **`models/Sulphur 2/`** **— program will auto-copy to ComfyUI)**:
+
+| Model File                                       | Size    | Download Link                                            |
+| ------------------------------------------------ | ------- | -------------------------------------------------------- |
+| **10Eros\_v1.4\_DMD\_int8\_convrot.safetensors** | \~27 GB | macin.top: <https://macin.top/posts/e6671f22/index.html> |
+
+**Program-side placement flow**: `models/Sulphur 2/` → Wizard step 3 "Auto-copy missing files" → auto-distributed to ComfyUI's `checkpoints/` directory.
+
+**3. Three additional models (download separately within ComfyUI)**:
+
+- `gemma-3-12b-it-ablit-norms-biproj-fp8mixed.safetensors` (text encoder, place in `text_encoders/`)
+
+- `ltx-2.3-22b-distilled-lora-384.safetensors` (LoRA, place in `loras/`)
+
+- `ltx-2.3-spatial-upscaler-x2-1.1.safetensors` (upscaler, place in `checkpoints/`)
+
+Workflow templates: The program includes two JSON files (in `AI_Chat/` under repo root). You can also export API-format workflows from ComfyUI.
+
+**Directory structure**:
+
+```
+models/Sulphur 2/
+└── 10Eros_v1.4_DMD_int8_convrot.safetensors
+```
+
+***
+
+## 🖼 Wallpaper System Notes (Important!)
+
+> ⚠️ **This program's wallpaper feature works by reading folders downloaded via Wallpaper Engine subscriptions.**
+>
+> In other words, this program **does NOT provide** wallpaper assets itself. You need to:
+>
+> 1. First subscribe to your favorite wallpaper authors' works in **Wallpaper Engine** (Steam version)
+> 2. The program's "📁 Import Wallpaper Engine Folder" button auto-scans your computer's WE download directory
+> 3. **Please always follow/subscribe to the author in Wallpaper Engine** before using their wallpapers — respect original creators
+
+Supported wallpaper types:
+
+- 📸 **Static image wallpapers** (Wallpaper Engine pkg format, auto-extracts preview)
+
+- 🎬 **Animated video wallpapers** (mp4/avi directly supported)
+
+- 🖱 **Interactive parallax wallpapers** (halo follow effect when moving mouse)
+
+***
+
+## 🛠 Dependencies
+
+| Package    | Version  | Purpose             |
+| ---------- | -------- | ------------------- |
+| PyQt5      | ≥5.15.0  | GUI framework       |
+| QScintilla | ≥2.13.0  | Code editor         |
+| requests   | ≥2.28.0  | HTTP client         |
+| chardet    | ≥5.0.0   | Character encoding  |
+| psutil     | ≥5.9.0   | System monitoring   |
+| fastapi    | ≥0.100.0 | Web server (mobile) |
+| uvicorn    | ≥0.23.0  | ASGI server         |
+
+## ⌨️ Shortcuts
+
+| Shortcut | Function                  |
+| -------- | ------------------------- |
+| Ctrl+0   | 🖼 Wallpaper & Appearance |
+| Ctrl+1   | 💬 Chat                   |
+| Ctrl+2   | 🎭 Role-play              |
+| Ctrl+3   | 🎬 Text-to-Video          |
+| Ctrl+4   | 🖼 Image-to-Video         |
+| Ctrl+5   | 🎤 Voice System           |
+
+***
+
+## 🙏 Acknowledgements / Sources
+
+This program is **further developed** based on the following third-party open resources:
+
+| Module                        | Source                                                                                                  | Notes                                                                                                                                          |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| **llama-server** (LLM engine) | Official [ggml-org/llama.cpp](https://github.com/ggml-org/llama.cpp) b9381 release (commit `91eb8f4fa`) | Uses pure official binaries (merge of `llama-b9381-bin-win-cuda-13.3-x64.zip` + `cudart-llama-bin-win-cuda-13.3-x64.zip`), no third-party mods |
+| **GPT-SoVITS-v2pro**          | Open-source community + third-party integration packs                                                   | Integration pack: x-jzy.github.io tutorial                                                                                                     |
+| **CosyVoice**                 | Alibaba DAMO Academy [QwenAudio/CosyVoice](https://github.com/QwenAudio/CosyVoice)                      | Official open-source project                                                                                                                   |
+| **Sulphur 2 / LTX-Video**     | Open-source community models                                                                            | Download: macin.top sharing page                                                                                                               |
+| **ComfyUI**                   | [comfyanonymous/ComfyUI](https://github.com/comfyanonymous/ComfyUI)                                     | Official open-source project                                                                                                                   |
+
+> The third-party download links above are community tutorials/sharing pages. **The author of this program is unrelated to these third-party sites** — please verify content reliability yourself. All AI model copyrights belong to their respective original authors/institutions.
 
 ***
 
