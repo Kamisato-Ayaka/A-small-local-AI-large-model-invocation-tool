@@ -1,7 +1,7 @@
 """
 CosyVoice 分步安装面板 - 克隆仓库 / conda 环境 / 下载模型
 """
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QTextEdit, QGroupBox,
@@ -69,9 +69,33 @@ class CosyVoiceInstallPanel(QWidget):
 
         # 一键 + 取消
         all_row = QHBoxLayout()
-        btn_all = QPushButton("一键安装")
-        btn_all.setObjectName("secondaryBtn")
-        btn_all.setFixedSize(80, 26)
+        btn_all = QPushButton("🚀 一键安装")
+        btn_all.setFixedSize(120, 32)
+        btn_all.setCursor(Qt.PointingHandCursor)
+        btn_all.setStyleSheet("""
+            QPushButton {
+                background: qlineargradient(x1:0,y1:0,x2:1,y2:0,
+                    stop:0 #ff6b35, stop:0.5 #ff4444, stop:1 #e94560);
+                color: white;
+                border: none;
+                border-radius: 6px;
+                font-weight: 700;
+                font-size: 13px;
+                padding: 6px 16px;
+            }
+            QPushButton:hover {
+                background: qlineargradient(x1:0,y1:0,x2:1,y2:0,
+                    stop:0 #ff8550, stop:0.5 #ff6060, stop:1 #ff5a7a);
+            }
+            QPushButton:pressed {
+                background: qlineargradient(x1:0,y1:0,x2:1,y2:0,
+                    stop:0 #e55a2b, stop:0.5 #d63030, stop:1 #c73752);
+            }
+            QPushButton:disabled {
+                background: rgba(100,100,100,0.4);
+                color: rgba(200,200,200,0.4);
+            }
+        """)
         btn_all.clicked.connect(self._run_all)
         all_row.addWidget(btn_all)
         btn_cancel = QPushButton("取消")

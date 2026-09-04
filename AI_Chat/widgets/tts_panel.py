@@ -10,8 +10,9 @@ from PyQt5.QtWidgets import (
     QDoubleSpinBox, QSpinBox, QMessageBox, QFrame, QScrollArea, QSizePolicy,
     QToolButton
 )
-from PyQt5.QtCore import Qt, QThread, pyqtSignal, QTimer
+from PyQt5.QtCore import Qt, QThread, pyqtSignal, QTimer, QUrl
 from PyQt5.QtGui import QFont, QColor
+from PyQt5.QtMultimedia import QMediaContent, QMediaPlayer
 
 
 class TestSynthesizeWorker(QThread):
@@ -19,20 +20,15 @@ class TestSynthesizeWorker(QThread):
     finished = pyqtSignal(str)        # wav 路径
     error = pyqtSignal(str)
 
-    def __init__(self, engine: str, text: str, params: dict, out_dir: str = ""):
+    def __init__(self, engine: str, text: str, params: dict):
         super().__init__()
         self.engine = engine
         self.text = text
         self.params = params
-        self.out_dir = out_dir
 
     def run(self):
         try:
             text = self.text.strip() or "你好，这是一段测试语音。"
-            import os as _os, time as _t
-            out_path = ""
-            if self.out_dir and _os.path.isdir(self.out_dir):
-                out_path = _os.path.join(self.out_dir, f"tts_test_{int(_t.time())}.wav")
             if self.engine == "gpt_sovits":
                 from core.gpt_sovits_client import GptSovitsClient
                 client = GptSovitsClient()
@@ -47,7 +43,6 @@ class TestSynthesizeWorker(QThread):
                     top_p=self.params.get("top_p", 1.0),
                     temperature=self.params.get("temperature", 1.0),
                     speed=self.params.get("speed", 1.0),
-                    out_path=out_path or None,
                 )
             else:
                 from core.tts_client import TTSClient
@@ -56,7 +51,7 @@ class TestSynthesizeWorker(QThread):
                     text=text,
                     voice=self.params.get("voice", ""),
                     speed=self.params.get("speed", 1.0),
-                    out_path=out_path or None,
+                    ref_path=self.params.get("ref_path", ""),
                 )
             self.finished.emit(path)
         except Exception as e:
@@ -73,6 +68,10 @@ class TTSPanel(QWidget):
         self._init_ui()
         self._connect_signals()
         self._load_config()
+        # 音频播放器
+        self._media_player = QMediaPlayer(self)
+        self._media_player.stateChanged.connect(self._on_player_state_changed)
+        self._last_wav = ""
 
     # ============================================================
     # UI 构建
@@ -112,6 +111,62 @@ class TTSPanel(QWidget):
         scroll.setStyleSheet("QScrollArea { border: none; background: transparent; }")
 
         container = QWidget()
+        container.setStyleSheet("""
+            /* 所有下拉框 — 修复 popup list 一半黑的问题 */
+            QComboBox {
+                background: rgba(30,30,46,0.95);
+                color: #e0f0ff;
+                border: 1px solid rgba(0,212,255,0.4);
+                border-radius: 4px;
+                padding: 4px 8px;
+                min-height: 20px;
+            }
+            QComboBox:hover { border-color: #00d4ff; background: rgba(0,212,255,0.12); }
+            QComboBox::drop-down {
+                border: none;
+                width: 18px;
+                background: rgba(0,212,255,0.15);
+                border-left: 1px solid rgba(0,212,255,0.4);
+            }
+            QComboBox QAbstractItemView {
+                background: #1a1a2e;
+                color: #e0f0ff;
+                border: 1px solid rgba(0,212,255,0.5);
+                selection-background-color: rgba(0,212,255,0.35);
+                selection-color: #ffffff;
+                outline: 0;
+                padding: 2px;
+            }
+            QComboBox QAbstractItemView::item {
+                padding: 4px 8px;
+                min-height: 18px;
+            }
+            QComboBox QAbstractItemView::item:selected {
+                background: rgba(0,212,255,0.35);
+                color: #ffffff;
+            }
+            QComboBox QAbstractItemView::item:hover {
+                background: rgba(0,212,255,0.18);
+            }
+            /* 数字输入框 */
+            QSpinBox, QDoubleSpinBox {
+                background: rgba(30,30,46,0.95);
+                color: #e0f0ff;
+                border: 1px solid rgba(0,212,255,0.4);
+                border-radius: 4px;
+                padding: 2px 6px;
+            }
+            QSpinBox:focus, QDoubleSpinBox:focus { border-color: #00d4ff; }
+            /* 文本输入框 */
+            QLineEdit {
+                background: rgba(30,30,46,0.95);
+                color: #e0f0ff;
+                border: 1px solid rgba(0,212,255,0.4);
+                border-radius: 4px;
+                padding: 4px 8px;
+            }
+            QLineEdit:focus { border-color: #00d4ff; }
+        """)
         layout = QVBoxLayout(container)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(12)
@@ -120,6 +175,20 @@ class TTSPanel(QWidget):
         self.gs_group = QGroupBox("GPT-SoVITS 配置")
         gs_layout = QVBoxLayout(self.gs_group)
         gs_layout.setSpacing(8)
+
+        # 下载地址提示
+        self.gs_download_hint = QLabel(
+            '📥 <b>GPT-SoVITS-v2pro 下载</b>：'
+            '<a href="https://x-jzy.github.io/2025/10/31/GPT-SoVITS%E7%9A%84%E6%9C%AC%E5%9C%B0%E9%83%A8%E7%BD%B2%E4%B8%8E%E4%BD%BF%E7%94%A8/" style="color:#58a6ff;">'
+            '第三方教程页（x-jzy.github.io）</a>'
+            ''
+        )
+        self.gs_download_hint.setOpenExternalLinks(True)
+        self.gs_download_hint.setStyleSheet(
+            "color: #888; font-size: 11px; padding: 4px 0px;"
+        )
+        self.gs_download_hint.setWordWrap(True)
+        gs_layout.addWidget(self.gs_download_hint)
 
         # 整合包路径
         row = QHBoxLayout()
@@ -265,28 +334,77 @@ class TTSPanel(QWidget):
 
         gs_layout.addWidget(params_frame)
 
-        # CosyVoice 配置组
+        # CosyVoice 配置组（与设置页一致：语音模型 + 语速 + 字数上限 + 分步安装）
         self.cv_group = QGroupBox("CosyVoice 配置")
         cv_layout = QVBoxLayout(self.cv_group)
         cv_layout.setSpacing(8)
 
+        # 语音模型选择
         row = QHBoxLayout()
-        row.addWidget(QLabel("服务地址:"))
-        self.cv_host_edit = QLineEdit()
-        self.cv_host_edit.setFixedWidth(140)
-        row.addWidget(self.cv_host_edit)
-        row.addWidget(QLabel(":"))
-        self.cv_port_edit = QLineEdit()
-        self.cv_port_edit.setFixedWidth(80)
-        row.addWidget(self.cv_port_edit)
+        row.addWidget(QLabel("语音模型:"))
+        self.cv_model_combo = QComboBox()
+        self.cv_model_combo.addItem("CosyVoice2-0.5B（推荐，约 5GB）", "CosyVoice2-0.5B")
+        self.cv_model_combo.addItem("Fun-CosyVoice3-0.5B-2512（约 9.1GB，效果更好）", "Fun-CosyVoice3-0.5B-2512")
+        row.addWidget(self.cv_model_combo, 1)
+        cv_layout.addLayout(row)
+
+        # 默认音色
+        row = QHBoxLayout()
+        row.addWidget(QLabel("默认音色:"))
+        self.cv_voice_combo = QComboBox()
+        self.cv_voice_combo.setEditable(True)
+        for v in ["中文女", "中文男", "英文女", "英文男", "日文女", "日文男", "粤语女", "韩语女"]:
+            self.cv_voice_combo.addItem(v)
+        self.btn_refresh_voices = QPushButton("🔄 刷新")
+        self.btn_refresh_voices.setFixedWidth(60)
+        self.btn_refresh_voices.clicked.connect(self._refresh_cv_voices)
+        row.addWidget(self.cv_voice_combo, 1)
+        row.addWidget(self.btn_refresh_voices)
+        cv_layout.addLayout(row)
+
+        # 语速 + 字数上限
+        row = QHBoxLayout()
+        row.addWidget(QLabel("语速:"))
+        self.cv_speed_spin = QDoubleSpinBox()
+        self.cv_speed_spin.setRange(0.5, 2.0)
+        self.cv_speed_spin.setSingleStep(0.1)
+        self.cv_speed_spin.setValue(1.0)
+        self.cv_speed_spin.setDecimals(2)
+        self.cv_speed_spin.setFixedWidth(80)
+        row.addWidget(self.cv_speed_spin)
+        row.addSpacing(16)
+        row.addWidget(QLabel("朗读字数上限:"))
+        self.cv_max_chars_spin = QSpinBox()
+        self.cv_max_chars_spin.setRange(100, 10000)
+        self.cv_max_chars_spin.setSingleStep(100)
+        self.cv_max_chars_spin.setValue(1000)
+        self.cv_max_chars_spin.setToolTip("每次朗读的最大文本字数，超出部分截断。字数越多合成耗时越长")
+        self.cv_max_chars_spin.setFixedWidth(90)
+        row.addWidget(self.cv_max_chars_spin)
         row.addStretch()
         cv_layout.addLayout(row)
 
+        # 服务端口
         row = QHBoxLayout()
-        row.addWidget(QLabel("当前音色:"))
-        self.cv_voice_combo = QComboBox()
-        row.addWidget(self.cv_voice_combo, 1)
+        row.addWidget(QLabel("服务端口:"))
+        self.cv_port_spin = QSpinBox()
+        self.cv_port_spin.setRange(1024, 65535)
+        self.cv_port_spin.setValue(8901)
+        self.cv_port_spin.setFixedWidth(90)
+        row.addWidget(self.cv_port_spin)
+        row.addStretch()
         cv_layout.addLayout(row)
+
+        # 分步安装面板
+        try:
+            from widgets.tts_install_panel import CosyVoiceInstallPanel
+            self.cv_install_panel = CosyVoiceInstallPanel()
+            self.cv_install_panel.setStyleSheet(
+                "CosyVoiceInstallPanel { border: 1px solid rgba(0,212,255,0.2); border-radius: 6px;"
+                " background: rgba(0,212,255,0.04); }")
+            cv_layout.addWidget(self.cv_install_panel)
+        except Exception as e:
+            cv_layout.addWidget(QLabel(f"⚠️ CosyVoiceInstallPanel 加载失败: {e}"))
 
         # 启动/停止按钮行（两个引擎共用，放在 group 外面）
         btn_row = QHBoxLayout()
@@ -331,20 +449,24 @@ class TTSPanel(QWidget):
         self.test_edit.setPlaceholderText("输入测试文本...")
         test_layout.addWidget(self.test_edit)
 
-        row_folder = QHBoxLayout()
-        row_folder.addWidget(QLabel("输出文件夹:"))
-        self.test_outdir_edit = QLineEdit()
-        self.test_outdir_edit.setPlaceholderText("留空=临时目录；指定则保存到该文件夹")
-        self.test_outdir_edit.setStyleSheet("QLineEdit{padding:4px 8px;background:rgba(255,255,255,0.04);border:1px solid #3c3c3c;border-radius:6px;color:#d4d4d4;}")
-        row_folder.addWidget(self.test_outdir_edit, 1)
-        self.btn_pick_dir = QPushButton("📁 浏览")
-        self.btn_pick_dir.setFixedSize(72, 28)
-        self.btn_pick_dir.setCursor(Qt.PointingHandCursor)
-        self.btn_pick_dir.setStyleSheet(self._btn_secondary_style())
-        self.btn_pick_dir.clicked.connect(self._pick_test_outdir)
-        row_folder.addWidget(self.btn_pick_dir)
-        test_layout.addLayout(row_folder)
+        # CosyVoice 参考音频（zero-shot 克隆用，仅 CosyVoice 引擎时显示）
+        row_ref = QHBoxLayout()
+        self.test_ref_label = QLabel("🎙️ 参考音频:")
+        self.test_ref_label.setToolTip("CosyVoice zero-shot 克隆用的参考 wav 文件（5-10秒清晰人声）")
+        row_ref.addWidget(self.test_ref_label)
+        self.test_ref_edit = QLineEdit()
+        self.test_ref_edit.setPlaceholderText("留空=使用默认音色；选择 wav=zero-shot 克隆该音色")
+        row_ref.addWidget(self.test_ref_edit, 1)
+        self.btn_pick_ref = QPushButton("选择音频...")
+        self.btn_pick_ref.setFixedSize(88, 28)
+        self.btn_pick_ref.setCursor(Qt.PointingHandCursor)
+        self.btn_pick_ref.setStyleSheet(self._btn_secondary_style())
+        self.btn_pick_ref.clicked.connect(self._pick_test_ref)
+        row_ref.addWidget(self.btn_pick_ref)
+        test_layout.addLayout(row_ref)
+        self._test_ref_row_widgets = [self.test_ref_label, self.test_ref_edit, self.btn_pick_ref]
 
+        # 合成按钮行
         row = QHBoxLayout()
         self.btn_test = QPushButton("🎵 合成测试")
         self.btn_test.setFixedHeight(34)
@@ -352,12 +474,22 @@ class TTSPanel(QWidget):
         self.btn_test.setStyleSheet(self._btn_primary_style())
         row.addWidget(self.btn_test)
 
-        self.btn_open_wav = QPushButton("📂 打开音频")
-        self.btn_open_wav.setFixedHeight(34)
-        self.btn_open_wav.setCursor(Qt.PointingHandCursor)
-        self.btn_open_wav.setStyleSheet(self._btn_secondary_style())
-        self.btn_open_wav.setEnabled(False)
-        row.addWidget(self.btn_open_wav)
+        # 播放控件行（初始禁用，合成成功后启用）
+        self.btn_play = QPushButton("▶️ 播放")
+        self.btn_play.setFixedHeight(34)
+        self.btn_play.setCursor(Qt.PointingHandCursor)
+        self.btn_play.setStyleSheet(self._btn_secondary_style())
+        self.btn_play.setEnabled(False)
+        self.btn_play.clicked.connect(self._toggle_play)
+        row.addWidget(self.btn_play)
+
+        self.btn_open_file = QPushButton("📂 打开文件位置")
+        self.btn_open_file.setFixedHeight(34)
+        self.btn_open_file.setCursor(Qt.PointingHandCursor)
+        self.btn_open_file.setStyleSheet(self._btn_secondary_style())
+        self.btn_open_file.setEnabled(False)
+        self.btn_open_file.clicked.connect(self._open_wav_location)
+        row.addWidget(self.btn_open_file)
 
         row.addStretch()
         test_layout.addLayout(row)
@@ -449,11 +581,8 @@ class TTSPanel(QWidget):
         self.gs_gpt_btn.clicked.connect(lambda: self._choose_file(self.gs_gpt_edit, "GPT 权重 (*.ckpt)", True))
         self.gs_refer_wav_btn.clicked.connect(lambda: self._choose_file(self.gs_refer_wav_edit, "参考音频 (*.wav *.mp3)", True))
 
-        # CosyVoice 刷新音色
-        self.btn_refresh_voices = QPushButton("🔄 刷新")
-        self.btn_refresh_voices.setFixedWidth(60)
+        # CosyVoice 刷新音色（btn_refresh_voices 已在 _build_config_area 创建，这里只连信号）
         self.btn_refresh_voices.clicked.connect(self._refresh_cv_voices)
-        # 动态加到 cv_group（已在 cv_layout 里加了 cv_voice_combo，这里单独加按钮）
 
         # 启动/停止/保存
         self.btn_start.clicked.connect(self._start_service)
@@ -465,7 +594,6 @@ class TTSPanel(QWidget):
 
         # 测试
         self.btn_test.clicked.connect(self._test_synthesize)
-        self.btn_open_wav.clicked.connect(self._open_wav)
 
     # ============================================================
     # 配置读写
@@ -498,8 +626,25 @@ class TTSPanel(QWidget):
 
         # CosyVoice
         tts = cfg.get("tts", {})
-        self.cv_host_edit.setText(tts.get("host", "127.0.0.1"))
-        self.cv_port_edit.setText(str(tts.get("port", 8901)))
+        # 语音模型
+        model_key = tts.get("model_key", "CosyVoice2-0.5B")
+        idx = self.cv_model_combo.findData(model_key)
+        if idx >= 0:
+            self.cv_model_combo.setCurrentIndex(idx)
+        # 默认音色
+        voice = tts.get("voice", "中文女")
+        v_idx = self.cv_voice_combo.findText(voice)
+        if v_idx >= 0:
+            self.cv_voice_combo.setCurrentIndex(v_idx)
+        else:
+            self.cv_voice_combo.setCurrentText(voice)
+        # 语速
+        self.cv_speed_spin.setValue(float(tts.get("speed", 1.0)))
+        # 朗读字数上限
+        self.cv_max_chars_spin.setValue(int(tts.get("max_read_chars", 1000)))
+        # 服务端口
+        self.cv_port_spin.setValue(int(tts.get("port", 8901)))
+        # 刷新音色列表
         self._refresh_cv_voices()
 
         # 状态监听
@@ -535,8 +680,11 @@ class TTSPanel(QWidget):
             cfg.set(f"gpt_sovits.{k}", v)
 
         # CosyVoice
-        cfg.set("tts.host", self.cv_host_edit.text().strip() or "127.0.0.1")
-        cfg.set("tts.port", int(self.cv_port_edit.text() or 8901))
+        cfg.set("tts.model_key", self.cv_model_combo.currentData() or "CosyVoice2-0.5B")
+        cfg.set("tts.voice", self.cv_voice_combo.currentText().strip() or "中文女")
+        cfg.set("tts.speed", self.cv_speed_spin.value())
+        cfg.set("tts.max_read_chars", self.cv_max_chars_spin.value())
+        cfg.set("tts.port", self.cv_port_spin.value())
 
         self._append_log("✅ 配置已保存", "info")
         QMessageBox.information(self, "保存成功", "配置已保存到 config.json")
@@ -555,6 +703,10 @@ class TTSPanel(QWidget):
         is_gs = idx == 1
         self.gs_group.setVisible(is_gs)
         self.cv_group.setVisible(not is_gs)
+        # 测试合成区：参考音频行仅 CosyVoice 引擎时显示
+        if hasattr(self, '_test_ref_row_widgets'):
+            for w in self._test_ref_row_widgets:
+                w.setVisible(not is_gs)
 
     # ============================================================
     # 文件选择
@@ -731,18 +883,20 @@ class TTSPanel(QWidget):
         }
         for k, v in gs.items():
             cfg.set(f"gpt_sovits.{k}", v)
-        cfg.set("tts.host", self.cv_host_edit.text().strip() or "127.0.0.1")
-        cfg.set("tts.port", int(self.cv_port_edit.text() or 8901))
+        cfg.set("tts.model_key", self.cv_model_combo.currentData() or "CosyVoice2-0.5B")
+        cfg.set("tts.voice", self.cv_voice_combo.currentText().strip() or "中文女")
+        cfg.set("tts.speed", self.cv_speed_spin.value())
+        cfg.set("tts.max_read_chars", self.cv_max_chars_spin.value())
+        cfg.set("tts.port", self.cv_port_spin.value())
 
     # ============================================================
     # 测试合成
     # ============================================================
 
-    def _pick_test_outdir(self):
-        d = QFileDialog.getExistingDirectory(self, "选择输出文件夹")
-        if d:
-            self.test_outdir_edit.setText(d)
-
+    def _pick_test_ref(self):
+        p, _ = QFileDialog.getOpenFileName(self, "选择参考音频 (wav)", "", "音频文件 (*.wav *.mp3);;所有文件 (*)")
+        if p:
+            self.test_ref_edit.setText(p)
 
     def _test_synthesize(self):
         engine = "cosyvoice" if self._engine_idx() == 0 else "gpt_sovits"
@@ -750,8 +904,6 @@ class TTSPanel(QWidget):
         if engine == "gpt_sovits":
             params = {
                 "text_language": self.gs_text_lang_combo.currentText(),
-                "refer_wav": self.gs_refer_wav_edit.text().strip(),
-                "refer_text": self.gs_refer_text_edit.text().strip(),
                 "refer_lang": self.gs_refer_lang_combo.currentText(),
                 "top_k": self.gs_topk_spin.value(),
                 "top_p": self.gs_topp_spin.value(),
@@ -759,27 +911,40 @@ class TTSPanel(QWidget):
                 "speed": self.gs_speed_spin.value(),
             }
         else:
-            from core.tts_client import get_tts_base_url
             params = {
                 "voice": self.cv_voice_combo.currentText() if self.cv_voice_combo.count() else "",
-                "speed": 1.0,
+                "speed": self.cv_speed_spin.value(),
+                "ref_path": self.test_ref_edit.text().strip(),
             }
 
-        out_dir = self.test_outdir_edit.text().strip()
-        self._worker = TestSynthesizeWorker(engine, self.test_edit.text(), params, out_dir=out_dir)
+        # 先停掉正在播的
+        self._media_player.stop()
+
+        self._worker = TestSynthesizeWorker(engine, self.test_edit.text(), params)
         self._worker.finished.connect(self._on_test_done)
         self._worker.error.connect(self._on_test_error)
         self._worker.start()
         self.test_status.setText("⏳ 合成中...")
+        self.test_status.setStyleSheet("color: #ff9800; font-size: 12px;")
         self.btn_test.setEnabled(False)
+        self.btn_play.setEnabled(False)
+        self.btn_open_file.setEnabled(False)
 
     def _on_test_done(self, path: str):
-        self.test_status.setText(f"✅ 合成完成: {path}")
-        self.test_status.setStyleSheet("color: #4caf50; font-size: 12px;")
         self._last_wav = path
-        self.btn_open_wav.setEnabled(True)
+        self.test_status.setText(f"✅ 合成成功！正在播放...")
+        self.test_status.setStyleSheet("color: #4caf50; font-size: 12px;")
         self.btn_test.setEnabled(True)
+        self.btn_play.setEnabled(True)
+        self.btn_open_file.setEnabled(True)
+        self.btn_play.setText("⏹ 停止")
         self._append_log(f"测试合成完成: {path}", "info")
+        # 自动播放
+        try:
+            self._media_player.setMedia(QMediaContent(QUrl.fromLocalFile(path)))
+            self._media_player.play()
+        except Exception as e:
+            self._append_log(f"自动播放失败: {e}（可点击播放按钮）", "warn")
 
     def _on_test_error(self, err: str):
         self.test_status.setText(f"❌ 合成失败: {err}")
@@ -791,13 +956,37 @@ class TTSPanel(QWidget):
             self, "合成失败",
             f"合成失败，请检查 {engine_name} 配置。\n\n错误信息: {err}")
 
-    def _open_wav(self):
+    # ---------- 音频播放器 ----------
+
+    def _toggle_play(self):
+        """切换播放/停止"""
+        if self._media_player.state() == QMediaPlayer.PlayingState:
+            self._media_player.stop()
+        else:
+            if self._last_wav and os.path.exists(self._last_wav):
+                self._media_player.setMedia(QMediaContent(QUrl.fromLocalFile(self._last_wav)))
+                self._media_player.play()
+            else:
+                QMessageBox.information(self, "提示", "请先合成一段测试语音")
+
+    def _on_player_state_changed(self, state: int):
+        """播放器状态变化 → 更新按钮文字"""
+        if state == QMediaPlayer.PlayingState:
+            self.btn_play.setText("⏹ 停止")
+        else:
+            self.btn_play.setText("▶️ 播放")
+
+    def _open_wav_location(self):
+        """在资源管理器中打开文件所在位置"""
         wav = getattr(self, "_last_wav", "")
         if wav and os.path.exists(wav):
             try:
-                os.startfile(wav)
+                # /select, 打开文件夹并选中文件
+                subprocess.Popen(['explorer', '/select,', os.path.normpath(wav)])
             except Exception as e:
                 QMessageBox.warning(self, "打开失败", str(e))
+        else:
+            QMessageBox.information(self, "提示", "请先合成一段测试语音")
 
     # ============================================================
     # 日志

@@ -15,7 +15,7 @@ from PyQt5.QtWidgets import (
     QSplitter, QInputDialog, QDialog, QApplication
 )
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, QTimer, QUrl, QEvent
-from PyQt5.QtGui import QPixmap, QFont, QIcon, QMovie
+from PyQt5.QtGui import QPixmap, QFont, QIcon, QMovie, QDesktopServices
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
 from PyQt5.QtMultimediaWidgets import QVideoWidget
 
@@ -263,6 +263,21 @@ class VideoPanel(QWidget):
                 subcontrol-origin: margin; left: 10px; padding: 0 4px; font-size: 12px;
             }
         """
+
+        # ===== 模型下载地址 =====
+        download_row = QLabel(
+            '📥 <b>Sulphur 2 模型下载</b>：'
+            '<a href="https://macin.top/posts/e6671f22/index.html" style="color:#58a6ff;">'
+            '第三方分享页（macin.top）</a>'
+            ''
+        )
+        download_row.setOpenExternalLinks(True)
+        download_row.setStyleSheet(
+            "color: #888; font-size: 11px; padding: 4px 2px; "
+            "border-bottom: 1px solid rgba(255,255,255,0.1);"
+        )
+        download_row.setWordWrap(True)
+        layout.addWidget(download_row)
 
         # ===== 模型设置（三步，原封不动嵌入向导页面，竖排） =====
         setup_group = QGroupBox("模型设置")

@@ -6,28 +6,14 @@ import shutil
 from typing import List, Dict, Tuple, Callable
 
 
-# 需要检查的模型文件列表
-# (源文件名, 目标子文件夹, 显示名称)
+# 需要检查/复制的模型文件列表（仅 Sulphur 2 压缩包自带的那一个）
+# 其余模型（gemma-3-12b 文本编码器、ltx-2.3 Distilled LoRA、ltx-2.3 Spatial Upscaler）
+# 都需要在 ComfyUI 中单独下载
 REQUIRED_MODELS = [
-    (
-        "gemma-3-12b-it-ablit-norms-biproj-fp8mixed.safetensors",
-        "text_encoders",
-        "文本编码器 (Gemma 3 12B)"
-    ),
     (
         "10Eros_v1.4_DMD_int8_convrot.safetensors",
         "checkpoints",
         "扩散主模型 (10Eros v1.4 INT8)"
-    ),
-    (
-        "ltx-2.3-22b-distilled-lora-384.safetensors",
-        "loras",
-        "LoRA 模型 (LTX 2.3 Distilled)"
-    ),
-    (
-        "ltx-2.3-spatial-upscaler-x2-1.1.safetensors",
-        "latent_upscale_models",
-        "潜空间超分模型 (Spatial Upscaler x2)"
     ),
 ]
 

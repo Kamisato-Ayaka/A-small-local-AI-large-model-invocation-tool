@@ -120,26 +120,14 @@ class CopyWorker(QThread):
 
 
 # ========== 模型文件清单 ==========
+# 仅列出 Sulphur 2 压缩包自带的那个模型文件
+# 其余三个（gemma-3-12b 文本编码器、ltx-2.3 Distilled LoRA、ltx-2.3 Spatial Upscaler）
+# 需要在 ComfyUI 中单独下载
 LTX_SULPHUR_MODELS = [
-    {
-        "filename": "gemma-3-12b-it-ablit-norms-biproj-fp8mixed.safetensors",
-        "subfolder": "text_encoders",
-        "name": "文本编码器 (Gemma 3 12B)",
-    },
     {
         "filename": "10Eros_v1.4_DMD_int8_convrot.safetensors",
         "subfolder": "checkpoints",
         "name": "扩散主模型 (10Eros v1.4 INT8)",
-    },
-    {
-        "filename": "ltx-2.3-22b-distilled-lora-384.safetensors",
-        "subfolder": "loras",
-        "name": "LoRA 模型 (LTX 2.3 Distilled)",
-    },
-    {
-        "filename": "ltx-2.3-spatial-upscaler-x2-1.1.safetensors",
-        "subfolder": "latent_upscale_models",
-        "name": "潜空间超分模型 (Spatial Upscaler)",
     },
 ]
 
@@ -564,7 +552,9 @@ class VideoSetupWizard(QDialog):
 
         desc = QLabel("第三步：检测模型文件\n\n"
                       "程序会自动检测第一步指定的下载目录中所需的模型文件是否存在。\n"
-                      "缺失的文件可以一键从 models/Sulphur 2 文件夹复制过去。")
+                      "缺失的文件可以一键从 models/Sulphur 2 文件夹复制过去。\n"
+                      "另外三个模型（gemma-3-12b 文本编码器、ltx-2.3 Distilled LoRA、"
+                      "ltx-2.3 Spatial Upscaler）需要在 ComfyUI 中下载。")
         desc.setStyleSheet("color: #ccc; font-size: 12px;")
         desc.setWordWrap(True)
         layout.addWidget(desc)

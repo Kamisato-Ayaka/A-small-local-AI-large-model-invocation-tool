@@ -349,6 +349,19 @@ class SettingsDialog(QDialog):
         self.local_temp.setDecimals(2)
         layout.addRow("Temperature：", self.local_temp)
 
+        # 模型下载地址
+        download_hint = QLabel(
+            '📥 <b>模型下载</b>：'
+            '<a href="https://huggingface.co/TrevorJS/gemma-4-E4B-it-uncensored-GGUF" style="color:#58a6ff;">Gemma 4 E4B</a>'
+            ' | '
+            '<a href="https://blog.csdn.net/weixin_41961749/article/details/161501525" style="color:#58a6ff;">Qwen3.6-35B</a>'
+            ''
+        )
+        download_hint.setOpenExternalLinks(True)
+        download_hint.setStyleSheet("color: #888; font-size: 11px;")
+        download_hint.setWordWrap(True)
+        layout.addRow("", download_hint)
+
         return widget
 
     def _create_sdk_model_form(self) -> QWidget:
@@ -478,6 +491,19 @@ class SettingsDialog(QDialog):
         svc_hint.setStyleSheet("color: #808080; font-size: 11px;")
         svc_hint.setWordWrap(True)
         layout.addRow("", svc_hint)
+
+        # CosyVoice 下载地址
+        cv_download_hint = QLabel(
+            '📥 <b>CosyVoice 下载</b>：'
+            '<a href="https://github.com/QwenAudio/CosyVoice" style="color:#58a6ff;">官方仓库</a>'
+            ' | '
+            '<a href="https://www.modelscope.cn/models/iic/Fun-CosyVoice3-0.5B-2512" style="color:#58a6ff;">ModelScope 模型</a>'
+            ''
+        )
+        cv_download_hint.setOpenExternalLinks(True)
+        cv_download_hint.setStyleSheet("color: #888; font-size: 11px;")
+        cv_download_hint.setWordWrap(True)
+        layout.addRow("", cv_download_hint)
 
         # 分步安装面板
         self.tts_install_panel = CosyVoiceInstallPanel()

@@ -508,6 +508,8 @@ class MainWindow(QMainWindow):
 
         if combo.count() == 0:
             combo.addItem("（未找到本地模型，请检查 models/ 目录）", "")
+        # 追加管理入口
+        combo.addItem("⚙️ 管理模型...", "__manage__")
         # 选中当前模型
         try:
             cur = self.cfg.get_current_model()
@@ -552,6 +554,12 @@ class MainWindow(QMainWindow):
 
     def _on_chat_model_changed(self, idx: int):
         data = self.combo_chat.currentData()
+        if data == "__manage__":
+            self.open_settings()
+            # 刷新模型列表，恢复当前选中
+            self._fill_llm_combo(self.combo_chat)
+            self._fill_llm_combo(self.combo_rp)
+            return
         if not data:
             return
         try:
@@ -570,6 +578,11 @@ class MainWindow(QMainWindow):
 
     def _on_rp_model_changed(self, idx: int):
         data = self.combo_rp.currentData()
+        if data == "__manage__":
+            self.open_settings()
+            self._fill_llm_combo(self.combo_chat)
+            self._fill_llm_combo(self.combo_rp)
+            return
         if not data:
             return
         # 角色扮演共用对话模型池
