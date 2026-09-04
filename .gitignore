@@ -15,9 +15,6 @@ ngrok.exe
 llama-b9381-bin-win-cuda-13.3-x64/
 程序环境需求软件SoftWarePackges/
 
-# ===== AI 模型（用户自行下载，见 README 模型下载指南）=====
-models/
-
 # ===== IDE / 编辑器 =====
 .trae/
 .idea/
