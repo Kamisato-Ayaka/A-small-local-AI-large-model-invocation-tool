@@ -1,4 +1,4 @@
-# 🎮 A-small-local-AI-large-model-invocation-tool
+﻿# 🎮 A-small-local-AI-large-model-invocation-tool
 
 PyQt5 本地桌面 AI 应用，集成调用本地模型实现 **AI 对话 / 角色扮演 / 文生视频 / 图生视频 / 语音合成** 五大功能模块，无浏览器依赖，支持动态壁纸桌面美化。
 
@@ -190,7 +190,7 @@ AI_Chat/                              ← 项目根目录（仓库根）
 | -------------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------ |
 | **llama.cpp Windows CUDA 13.3 预编译 + CUDA DLL（官方）** | <https://github.com/ggml-org/llama.cpp/releases/tag/b9381> | 项目根目录 `llama-b9381-bin-win-cuda-13.3-x64/` |
 
-本仓库根目录已包含 6 个分卷压缩包（`llama-b9381-bin-win-cuda-13.3-x64.part1.rar` \~ `.part6.rar`），下载后把所有分卷放在同一目录，用 WinRAR 或 7-Zip 打开 `.part1.rar` 解压即可得到完整的 `llama-b9381-bin-win-cuda-13.3-x64/` 文件夹。
+本仓库根目录已包含 6 个分卷压缩包（`llama-b9381-bin-win-cuda-13.3-x64.part1.rar` \~ `.part6.rar`），下载后把所有分卷放在同一目录，用 WinRAR 或 7-Zip 打开 `.part1.rar` 解压，确保解压到 **AI_Chat 项目文件夹同级目录**（解压后应看到 `AI_Chat/` 和 `llama-b9381-bin-win-cuda-13.3-x64/` 两个文件夹并排）。
 
 > 也可以直接从官方 release 下载两个 zip 合并解压：`llama-b9381-bin-win-cuda-13.3-x64.zip` + `cudart-llama-bin-win-cuda-13.3-x64.zip`。当前项目使用纯官方原版（b9381, commit `91eb8f4fa`），无第三方修改。
 
@@ -552,7 +552,7 @@ After placement, the program will **auto-scan** all .gguf files in `models/` and
 | --------------------------------------------------------------- | ---------------------------------------------------------- | --------------------------------------------------- |
 | **llama.cpp Windows CUDA 13.3 pre-built + CUDA DLL** (official) | <https://github.com/ggml-org/llama.cpp/releases/tag/b9381> | `llama-b9381-bin-win-cuda-13.3-x64/` (project root) |
 
-This repository root includes 6 split archive files (`llama-b9381-bin-win-cuda-13.3-x64.part1.rar` \~ `.part6.rar`). Place all parts in the same directory, then open `.part1.rar` with WinRAR or 7-Zip and extract — this produces the complete `llama-b9381-bin-win-cuda-13.3-x64/` folder.
+This repository root includes 6 split archive files (`llama-b9381-bin-win-cuda-13.3-x64.part1.rar` \~ `.part6.rar`). Place all parts in the same directory, then open `.part1.rar` with WinRAR or 7-Zip and extract. Make sure to extract to the **same parent directory as the `AI_Chat/` folder** (after extraction you should see `AI_Chat/` and `llama-b9381-bin-win-cuda-13.3-x64/` side by side).
 
 > Optionally, download both official release assets and extract together: `llama-b9381-bin-win-cuda-13.3-x64.zip` + `cudart-llama-bin-win-cuda-13.3-x64.zip`. This project uses pure official binaries (b9381, commit `91eb8f4fa`), no third-party modifications.
 
@@ -724,3 +724,4 @@ This program is **further developed** based on the following third-party open re
 ## 📄 License
 
 GPL-3.0
+
